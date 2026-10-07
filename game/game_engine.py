@@ -25,14 +25,26 @@ class GameEngine:
 
         self.score = 0
         self.font = pygame.font.SysFont("Arial", 30)
+        self.game_over_font = pygame.font.SysFont("Arial", 60, bold=True)
+        self.game_over_text_font = pygame.font.SysFont("Arial", 28)
         self.game_over = False
 
     def handle_event(self, event):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            if self._shoot_cooldown <= 0:
-                bullet_x = self.player.center_x() - 2
-                self.player_bullets.append(Bullet(bullet_x, self.player.y, direction=-1))
-                self._shoot_cooldown = 15
+        if event.type == pygame.KEYDOWN:
+            if self.game_over:
+                if event.key == pygame.K_r:
+                    self.__init__(self.width, self.height)
+                elif event.key == pygame.K_q:
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
+                return
+
+            if event.key == pygame.K_SPACE:
+                if self._shoot_cooldown <= 0:
+                    bullet_x = self.player.center_x() - 2
+                    self.player_bullets.append(
+                        Bullet(bullet_x, self.player.y, direction=-1)
+                    )
+                    self._shoot_cooldown = 15
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
@@ -107,7 +119,36 @@ class GameEngine:
         score_text = self.font.render(f"Score: {self.score}", True, WHITE)
         screen.blit(score_text, (10, 10))
 
-        if self.game_over and not getattr(self, "_game_over_logged", False):
-            # NOTE: no proper game-over screen yet - see Task 2 in the README.
-            print("Game over! Final score:", self.score)
-            self._game_over_logged = True
+        if self.game_over:
+            overlay = pygame.Surface((self.width, self.height))
+            overlay.set_alpha(180)
+            overlay.fill((0, 0, 0))
+            screen.blit(overlay, (0, 0))
+
+            game_over_text = self.game_over_font.render("GAME OVER", True, RED)
+            score_text = self.game_over_text_font.render(
+                f"Final Score: {self.score}", True, WHITE
+            )
+            restart_text = self.game_over_text_font.render(
+                "Press R to Restart", True, WHITE
+            )
+            quit_text = self.game_over_text_font.render(
+                "Press Q to Quit", True, WHITE
+            )
+
+            screen.blit(
+                game_over_text,
+                game_over_text.get_rect(center=(self.width // 2, self.height // 2 - 100))
+            )
+            screen.blit(
+                score_text,
+                score_text.get_rect(center=(self.width // 2, self.height // 2 - 20))
+            )
+            screen.blit(
+                restart_text,
+                restart_text.get_rect(center=(self.width // 2, self.height // 2 + 50))
+            )
+            screen.blit(
+                quit_text,
+                quit_text.get_rect(center=(self.width // 2, self.height // 2 + 90))
+            )
