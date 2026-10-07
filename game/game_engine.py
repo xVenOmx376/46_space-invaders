@@ -14,6 +14,12 @@ class GameEngine:
     def __init__(self, width, height, difficulty="medium"):
         self.width = width
         self.height = height
+        
+        pygame.mixer.init()
+
+        self.shoot_sound = pygame.mixer.Sound("sounds/shoot.wav")
+        self.enemy_destroyed_sound = pygame.mixer.Sound("sounds/enemy_destroyed.wav")
+        self.game_over_sound = pygame.mixer.Sound("sounds/game_over.wav")
 
         self.player = Player(width // 2 - 20, height - 50, 40, 20)
         self.difficulty = difficulty
@@ -54,6 +60,7 @@ class GameEngine:
                     self.player_bullets.append(
                         Bullet(bullet_x, self.player.y, direction=-1)
                     )
+                    self.shoot_sound.play()
                     self._shoot_cooldown = 15
 
     def handle_input(self):
@@ -99,6 +106,7 @@ class GameEngine:
                 if bullet.rect().colliderect(enemy.rect()):
                     enemy.alive = False
                     self.score += 1
+                    self.enemy_destroyed_sound.play()
                     hit = True
                     break
 
@@ -110,10 +118,12 @@ class GameEngine:
         for bullet in self.enemy_bullets:
             if bullet.rect().colliderect(self.player.rect()):
                 self.game_over = True
+                self.game_over_sound.play()
                 break
 
         if self.enemy_grid.reached_bottom(self.player.y):
             self.game_over = True
+            self.game_over_sound.play()
 
     def render(self, screen):
         pygame.draw.rect(screen, GREEN, self.player.rect())
