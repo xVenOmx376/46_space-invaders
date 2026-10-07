@@ -11,17 +11,27 @@ GREEN = (0, 200, 0)
 RED = (220, 60, 60)
 
 class GameEngine:
-    def __init__(self, width, height):
+    def __init__(self, width, height, difficulty="medium"):
         self.width = width
         self.height = height
 
         self.player = Player(width // 2 - 20, height - 50, 40, 20)
-        self.enemy_grid = EnemyGrid(width)
+        self.difficulty = difficulty
+
+        difficulty_settings = {
+            "easy": {"speed": 1.0, "fire_chance": 0.005},
+            "medium": {"speed": 1.5, "fire_chance": 0.01},
+            "hard": {"speed": 2.5, "fire_chance": 0.02},
+        }
+
+        settings = difficulty_settings[difficulty]
+
+        self.enemy_grid = EnemyGrid(width, speed=settings["speed"])
 
         self.player_bullets = []
         self.enemy_bullets = []
         self._shoot_cooldown = 0
-        self.enemy_fire_chance = 0.01
+        self.enemy_fire_chance = settings["fire_chance"]
 
         self.score = 0
         self.font = pygame.font.SysFont("Arial", 30)
@@ -33,7 +43,7 @@ class GameEngine:
         if event.type == pygame.KEYDOWN:
             if self.game_over:
                 if event.key == pygame.K_r:
-                    self.__init__(self.width, self.height)
+                    self.__init__(self.width, self.height, self.difficulty)
                 elif event.key == pygame.K_q:
                     pygame.event.post(pygame.event.Event(pygame.QUIT))
                 return
